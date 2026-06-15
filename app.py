@@ -286,19 +286,34 @@ if __name__ == '__main__':
     port = 5000
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
-        s.bind(('127.0.0.1', port))
+        s.bind(('0.0.0.0', port))
         s.close()
     except socket.error:
         # Port is already in use, find an open port
-        s.bind(('127.0.0.1', 0))
+        s.bind(('0.0.0.0', 0))
         port = s.getsockname()[1]
         s.close()
 
-    print(f"Starting labeling UI server on http://127.0.0.1:{port}")
+    # Resolve local network IP address
+    local_ip = "127.0.0.1"
+    try:
+        temp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        temp_socket.connect(("8.8.8.8", 80))
+        local_ip = temp_socket.getsockname()[0]
+        temp_socket.close()
+    except Exception:
+        pass
+
+    print("\n" + "="*60)
+    print(f" Labeling UI Server running locally on:   http://127.0.0.1:{port}")
+    if local_ip != "127.0.0.1":
+        print(f" Accessible on your network at:         http://{local_ip}:{port}")
+    print("="*60 + "\n")
+
     # Open webbrowser automatically in a local environment
     try:
         webbrowser.open(f"http://127.0.0.1:{port}")
     except Exception:
         pass
         
-    app.run(host='127.0.0.1', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)
