@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classification Labeler</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <span class="logo-icon">🎯</span>
+                <h1 class="logo-text">Logo Annotator UI</h1>
+            </div>
+            <div class="header-status">
+                <span id="active-session-indicator" class="status-indicator inactive">Disconnected</span>
+                <span id="session-path-display" class="path-display">No directories loaded</span>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="app-main">
+            <!-- Left Panel: Configuration & File List -->
+            <section class="sidebar-left card">
+                <div class="section-title">
+                    <h2>Configuration</h2>
+                </div>
+                
+                <form id="config-form" class="config-form">
+                    <div class="form-group">
+                        <label for="images-dir-input">Images Folder Path</label>
+                        <input type="text" id="images-dir-input" placeholder="e.g. /path/to/images" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="output-dir-input">Output Folder Path</label>
+                        <input type="text" id="output-dir-input" placeholder="e.g. /path/to/output" required>
+                    </div>
+                    <button type="submit" id="btn-initialize" class="btn btn-primary">Load Dataset</button>
+                </form>
+
+                <hr class="divider">
+
+                <div class="sidebar-stats">
+                    <div class="stat-row">
+                        <span>Total Images</span>
+                        <span id="stat-total" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Labeled</span>
+                        <span id="stat-labeled" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Progress</span>
+                        <span id="stat-progress-pct" class="stat-value">-</span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar-container">
+                    <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%"></div>
+                </div>
+
+                <hr class="divider">
+
+                <div class="file-list-header">
+                    <h3>Images list</h3>
+                    <span id="file-list-counter" class="subtext">0 files</span>
+                </div>
+                <div class="file-list-container">
+                    <ul id="file-list" class="file-list">
+                        <!-- Populated by JavaScript -->
+                        <li class="file-list-empty">Load a dataset to view images</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Middle Panel: Viewer Workspace -->
+            <section class="viewer-workspace card">
+                <div class="viewer-header">
+                    <div class="file-info">
+                        <span class="active-badge">Active</span>
+                        <h2 id="current-filename" class="filename-text">No image loaded</h2>
+                    </div>
+                    <div class="viewer-actions">
+                        <button id="btn-prev" class="btn btn-secondary" title="Previous Image (Left Arrow)" disabled>
+                            <span>←</span> Prev
+                        </button>
+                        <button id="btn-skip" class="btn btn-secondary" title="Skip Image (Right Arrow / Space)" disabled>
+                            Skip <span>→</span>
+                        </button>
+                        <button id="btn-undo" class="btn btn-accent" title="Undo Last Action (Backspace)" disabled>
+                            Undo <span>⎌</span>
+                        </button>
+                        <button id="btn-reset-zoom" class="btn btn-secondary" title="Reset Zoom/Pan (Esc)" disabled>
+                            Reset View <span>⛶</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="image-viewer-container" id="image-viewer-container">
+                    <!-- Zoom & Pan Workspace -->
+                    <div class="zoom-pan-wrapper" id="zoom-pan-wrapper">
+                        <img id="active-image" class="active-image hidden" src="" alt="Active Image Preview">
+                        <div id="viewer-placeholder" class="viewer-placeholder">
+                            <div class="placeholder-icon">🖼️</div>
+                            <p>Configure input and output paths to start labeling</p>
+                        </div>
+                        <div id="viewer-loader" class="viewer-placeholder hidden">
+                            <div class="spinner"></div>
+                            <p>Loading image...</p>
+                        </div>
+                    </div>
+                    <!-- Zoom Level HUD -->
+                    <div id="zoom-level-hud" class="hud-badge hidden">Zoom: 100%</div>
+                </div>
+
+                <!-- Navigation Info -->
+                <div class="viewer-footer">
+                    <span id="image-navigation-progress">0 of 0 images</span>
+                    <span class="keyboard-hint">💡 Scroll to zoom. Drag to pan. Double-click to reset.</span>
+                </div>
+            </section>
+
+            <!-- Right Panel: Category Selectors -->
+            <section class="sidebar-right card">
+                <div class="section-title">
+                    <h2>Categories</h2>
+                    <span class="subtext">Select 1 - 13</span>
+                </div>
+                
+                <div class="categories-grid" id="categories-grid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+                <div class="keyboard-shortcuts-guide">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="shortcut-list">
+                        <div class="shortcut-item"><kbd>1</kbd>–<kbd>9</kbd><span>Label Categories 1–9</span></div>
+                        <div class="shortcut-item"><kbd>0</kbd><span>Label Category 10</span></div>
+                        <div class="shortcut-item"><kbd>Q</kbd><span>Label Category 11</span></div>
+                        <div class="shortcut-item"><kbd>W</kbd><span>Label Category 12</span></div>
+                        <div class="shortcut-item"><kbd>E</kbd><span>Label Category 13</span></div>
+                        <div class="shortcut-item"><kbd>→</kbd> / <kbd>Space</kbd><span>Skip current image</span></div>
+                        <div class="shortcut-item"><kbd>←</kbd><span>Previous image</span></div>
+                        <div class="shortcut-item"><kbd>Backspace</kbd><span>Undo last labeled image</span></div>
+                        <div class="shortcut-item"><kbd>Esc</kbd><span>Reset image zoom/pan</span></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Error/Success Toast Notification System -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
